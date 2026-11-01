@@ -6,51 +6,45 @@ import android.os.IBinder
 import android.os.Process
 import com.example.videocatalog.IVideoCatalog
 import com.example.videocatalog.VideoInfo
+import java.io.File
 
-/**
- * Runs in the ":metadata" process (see AndroidManifest.xml).
- * Owns the folder filesDir/videos; nothing outside this class knows the path.
- */
 class CatalogService : Service() {
 
+    private val videosDir by lazy { File(filesDir, "videos") }
+
     private val binder = object : IVideoCatalog.Stub() {
-        override fun listVideos(): List<VideoInfo> = listOf(
-            VideoInfo(
-                fileName = "h264_aac_720p.mp4",
-                durationUs = 5_000_000,
-                width = 1280, height = 720,
-                videoMime = "video/avc",
-                hasAudio = true
-            ),
-            VideoInfo(
-                fileName = "hevc_noaudio_1080p.mp4",
-                durationUs = 3_000_000,
-                width = 1920, height = 1080,
-                videoMime = "video/hevc",
-                hasAudio = false
-            ),
-            VideoInfo(
-                fileName = "vp9_opus_360p.webm",
-                durationUs = 4_000_000,
-                width = 640, height = 360,
-                videoMime = "video/x-vnd.on2.vp9",
-                hasAudio = true
-            ),
-            VideoInfo(
-                fileName = "audio_only.m4a",
-                hasAudio = true,
-                error = "No video track"
-            ),
-            VideoInfo(
-                fileName = "broken.mp4",
-                error = "Unsupported or corrupt file"
-            )
-        )
+        override fun listVideos(): List<VideoInfo> =
+            videosDir.listFiles().orEmpty()
+                .filter { it.isFile }
+                .sortedBy { it.name }
+                .map { file ->
+                    try {
+                        NativeExtractor.extractVideoMetaData(file.absolutePath)
+                    } catch (t: Throwable) {
+                        VideoInfo(fileName = file.name, error = t.message ?: "Extraction failed")
+                    }
+                }
 
         override fun getSerivcePID(): Int = Process.myPid()
     }
 
-    override fun onBind(intent: Intent?): IBinder {
-        return binder
+    override fun onCreate() {
+        super.onCreate()
+        copyAssetsOnce()
+    }
+
+    override fun onBind(intent: Intent?): IBinder = binder
+
+    private fun copyAssetsOnce() {
+        videosDir.mkdirs()
+        assets.list("videos").orEmpty().forEach { name ->
+            val target = File(videosDir, name)
+            if (target.exists()) return@forEach
+            val tmp = File(videosDir, "$name.tmp")
+            assets.open("videos/$name").use { input ->
+                tmp.outputStream().use { output -> input.copyTo(output) }
+            }
+            if (!tmp.renameTo(target)) tmp.delete()
+        }
     }
 }
