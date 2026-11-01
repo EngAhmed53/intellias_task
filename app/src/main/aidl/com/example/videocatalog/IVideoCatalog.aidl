@@ -4,5 +4,5 @@ import com.example.videocatalog.VideoInfo;
 
 interface IVideoCatalog {
     List<VideoInfo> listVideos();
-    int getSerivcePID();
+    int getServicePid();
 }

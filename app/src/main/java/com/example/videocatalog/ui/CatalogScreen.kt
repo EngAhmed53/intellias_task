@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
@@ -18,7 +19,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun CatalogScreen(state: UiState, onRefresh: () -> Unit, modifier: Modifier = Modifier) {
-    Column(modifier) {
+    Column(modifier.safeDrawingPadding()) {
         Button(onClick = onRefresh, modifier = Modifier.padding(16.dp)) {
             Text("Refresh")
         }

@@ -58,6 +58,12 @@ Java_com_example_videocatalog_service_NativeExtractor_extractVideoMetaData(
     }
 
     AMediaExtractor *extractor = AMediaExtractor_new();
+    if (extractor == nullptr) {
+        jobject err = errorObject(env, cls, ctor, name, "Cannot create extractor");
+        close(fd);
+        env->ReleaseStringUTFChars(jpath, path);
+        return err;
+    }
     media_status_t status = AMediaExtractor_setDataSourceFd(extractor, fd, 0, st.st_size);
     close(fd);
     if (status != AMEDIA_OK) {
@@ -110,5 +116,6 @@ Java_com_example_videocatalog_service_NativeExtractor_extractVideoMetaData(
 
     env->DeleteLocalRef(jname);
     env->DeleteLocalRef(jmime);
+    if (env->ExceptionCheck()) return nullptr;
     return result;
 }

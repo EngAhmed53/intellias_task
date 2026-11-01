@@ -15,7 +15,7 @@ class CatalogService : Service() {
     private val binder = object : IVideoCatalog.Stub() {
         override fun listVideos(): List<VideoInfo> =
             videosDir.listFiles().orEmpty()
-                .filter { it.isFile }
+                .filter { it.isFile && !it.name.endsWith(".tmp") }
                 .sortedBy { it.name }
                 .map { file ->
                     try {
@@ -25,7 +25,7 @@ class CatalogService : Service() {
                     }
                 }
 
-        override fun getSerivcePID(): Int = Process.myPid()
+        override fun getServicePid(): Int = Process.myPid()
     }
 
     override fun onCreate() {

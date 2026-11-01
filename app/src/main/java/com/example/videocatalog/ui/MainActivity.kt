@@ -80,8 +80,10 @@ class MainActivity : ComponentActivity() {
         uiState = UiState.Loading
         lifecycleScope.launch {
             uiState = try {
-                Log.i(TAG, "My pid = ${Process.myPid()}, service pid = ${catalog.serivcePID}")
-                UiState.Loaded(withContext(Dispatchers.IO) { catalog.listVideos() ?: emptyList() })
+                UiState.Loaded(withContext(Dispatchers.IO) {
+                    Log.i(TAG, "client pid = ${Process.myPid()}, service pid = ${catalog.servicePid}")
+                    catalog.listVideos() ?: emptyList()
+                })
             } catch (e: RemoteException) {
                 UiState.Error("Service unavailable: ${e.message}")
             }

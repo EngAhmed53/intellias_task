@@ -1,11 +1,9 @@
 package com.example.videocatalog
 
 import android.os.Parcelable
-import androidx.compose.runtime.Immutable
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-@Immutable
 data class VideoInfo(
     val fileName: String,
     val durationUs: Long = -1,
